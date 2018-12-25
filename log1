@@ -1,0 +1,23 @@
+commit de686cc03afd3f1ec8c664196cdd13d3dfef3389
+Author: Shashank V Hiremath <shashankhire2@gmail.com>
+Date:   Mon Dec 24 21:58:42 2018 +0530
+
+    File version. Need bug fixes
+
+commit 9aafcac2224780f44911498fb7d10dd58f3fb442
+Author: Shashank V Hiremath <shashankhire2@gmail.com>
+Date:   Mon Dec 24 12:45:02 2018 +0530
+
+    Fixed bugs. Ready to write trie to file
+
+commit babf59b6b981b88452f42ff1112d7e5a1619a713
+Author: Shashank V Hiremath <shashankhire2@gmail.com>
+Date:   Fri Dec 21 19:38:00 2018 +0530
+
+    Done hard delete
+
+commit 5afc9aff5e32b28701dad29843c0089a0d26bc8e
+Author: Shashank V Hiremath <shashankhire2@gmail.com>
+Date:   Fri Dec 21 17:21:08 2018 +0530
+
+    Initial commit

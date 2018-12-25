@@ -18,57 +18,62 @@ short int nextAvailableNode()
 
 void insertTrie(char *str)
 {
-    int curr = 1, i;
+    int curr = 1, i,size=ftell(fp);
     short int child;
     for (i = 0; str[i + 1]; i++)
-    // if (trie[curr][str[i] - '0'])
-    //     curr = (trie[curr][str[i] - '0'] < 0) * -(trie[curr][str[i] - '0']) + (trie[curr][str[i] - '0'] >= 0) * trie[curr][str[i] - '0'];
+    // if (trie[curr][str[i] - 'a'])
+    //     curr = (trie[curr][str[i] - 'a'] < 0) * -(trie[curr][str[i] - 'a']) + (trie[curr][str[i] - 'a'] >= 0) * trie[curr][str[i] - 'a'];
     // else
     // {
     //     cnt[curr]++;
-    //     curr = trie[curr][str[i] - '0'] = nextAvailableNode();
+    //     curr = trie[curr][str[i] - 'a'] = nextAvailableNode();
     //     printf("%c %d\n", str[i], curr);
     // }
     {
-        fseek(fp, 2 * (curr * LEN + (str[i] - '0')), SEEK_SET);
+        fseek(fp, 2 * (curr * LEN + (str[i] - 'a')), SEEK_SET);
         //printf("PosRead=%ld ",ftell(fp));
         fread(&child, sizeof(short int), 1, fp);
         //printf("%d: child=%d ",i,child);
-        if (child)
-            curr = (child < 0) * -child + (child >= 0) * child;
+        if (child&&(2 * (curr * LEN + (str[i] - 'a'))<size))
+            {
+                curr=(child<0)?-child:child;
+                printf("-->");
+            }
+            //curr = (child < 0) * -child + (child >= 0) * child;
         else
         {
             cnt[curr]++;
-            fseek(fp, 2 * (curr * LEN + (str[i] - '0')), SEEK_SET);     //Important step. seek. allocate. write.
+            fseek(fp, 2 * (curr * LEN + (str[i] - 'a')), SEEK_SET);     //Important step. seek. allocate. write.
             curr = nextAvailableNode();
             fwrite(&curr, sizeof(short int), 1, fp);
             //printf("str[i]=%c curr=%d pos=%ld\n", str[i], curr,ftell(fp));
-            printf("%c %d\n",str[i],curr);
         }
+            printf("%c %d\n",str[i],curr);
     }
-    //printf(" last=%d ",child);
-    // if (trie[curr][str[i] - '0'] < 0)
+    //printf(" 1last=%d curr=%d  ",child,curr);
+    // if (trie[curr][str[i] - 'a'] < 0)
     //     printf("%s already present\n", str);
-    // else if (trie[curr][str[i] - '0'] > 0)
+    // else if (trie[curr][str[i] - 'a'] > 0)
     // {
-    //     trie[curr][str[i] - '0'] *= -1;
+    //     trie[curr][str[i] - 'a'] *= -1;
     //     printf("%s is inserted\n", str);
     // }
     // else
     // {
     //     cnt[curr]++;
-    //     trie[curr][str[i] - '0'] = -nextAvailableNode();
-    //     printf("%c %d\n", str[i], trie[curr][str[i] - '0']);
+    //     trie[curr][str[i] - 'a'] = -nextAvailableNode();
+    //     printf("%c %d\n", str[i], trie[curr][str[i] - 'a']);
     //     printf("%s is inserted\n", str);
     // }
-    fseek(fp, 2 * (curr * LEN + (str[i] - '0')), SEEK_SET);
+    fseek(fp, 2 * (curr * LEN + (str[i] - 'a')), SEEK_SET);
     fread(&child, sizeof(short int), 1, fp);
-    if (child < 0)
+    //printf(" curr=%d child=%d ",curr,child);
+    if ((child < 0)&&(2 * (curr * LEN + (str[i] - 'a'))<size))
         printf("%s already present\n", str);
-    else if (child > 0)
+    else if ((child > 0)&&(2 * (curr * LEN + (str[i] - 'a'))<size))
     {
         child *= -1;
-        fseek(fp, 2 * (curr * LEN + (str[i] - '0')), SEEK_SET);
+        fseek(fp, 2 * (curr * LEN + (str[i] - 'a')), SEEK_SET);
         fwrite(&child, sizeof(short int), 1, fp);
         printf("%s is inserted\n", str);
     }
@@ -76,7 +81,8 @@ void insertTrie(char *str)
     {
         cnt[curr]++;
         child = -nextAvailableNode();
-        fseek(fp, 2 * (curr * LEN + (str[i] - '0')), SEEK_SET);
+        //printf("nextAvbl=%d\n",curr);
+        fseek(fp, 2 * (curr * LEN + (str[i] - 'a')), SEEK_SET);
         fwrite(&child, sizeof(short int), 1, fp);
         printf("%c %d\n", str[i], child);
         printf("%s is inserted\n", str);
@@ -88,15 +94,15 @@ void searchTrie(char *str)
     int curr = 1, i;
     short int child;
     for (i = 0; str[i + 1]; i++)
-    // if (trie[curr][str[i] - '0'])
-    //     curr = (trie[curr][str[i] - '0'] < 0) * -(trie[curr][str[i] - '0']) + (trie[curr][str[i] - '0'] >= 0) * trie[curr][str[i] - '0'];
+    // if (trie[curr][str[i] - 'a'])
+    //     curr = (trie[curr][str[i] - 'a'] < 0) * -(trie[curr][str[i] - 'a']) + (trie[curr][str[i] - 'a'] >= 0) * trie[curr][str[i] - 'a'];
     // else
     // {
     //     printf("%s not present\n", str);
     //     return;
     // }
     {
-        fseek(fp, 2 * (curr * LEN + (str[i] - '0')), SEEK_SET);
+        fseek(fp, 2 * (curr * LEN + (str[i] - 'a')), SEEK_SET);
         fread(&child, sizeof(short int), 1, fp);
         if (child)
             curr = (child < 0) * -child + (child >= 0) * child;
@@ -106,7 +112,7 @@ void searchTrie(char *str)
             return;
         }
     }
-    fseek(fp, 2 * (curr * LEN + (str[i] - '0')), SEEK_SET);
+    fseek(fp, 2 * (curr * LEN + (str[i] - 'a')), SEEK_SET);
     fread(&child, sizeof(short int), 1, fp);
     if (child < 0)
         printf("%s is present\n", str);
@@ -124,7 +130,7 @@ void deleteTrie(char *str)
 
         deleteStack[deleteTop++] = curr;
 
-        fseek(fp, 2 * (curr * LEN + (str[i] - '0')), SEEK_SET);
+        fseek(fp, 2 * (curr * LEN + (str[i] - 'a')), SEEK_SET);
         fread(&child, sizeof(short int), 1, fp);
         if (child)
             curr = (child < 0) * -child + (child >= 0) * child;
@@ -134,16 +140,16 @@ void deleteTrie(char *str)
             return;
         }
     }
-    // if (trie[curr][str[i] - '0'] < 0)
+    // if (trie[curr][str[i] - 'a'] < 0)
     // {
-    //     if (cnt[trie[curr][str[i] - '0']] > 0) //Remove only flag and retain node, for the sake of its other children
-    //         trie[curr][str[i] - '0'] *= -1;
+    //     if (cnt[trie[curr][str[i] - 'a']] > 0) //Remove only flag and retain node, for the sake of its other children
+    //         trie[curr][str[i] - 'a'] *= -1;
     //     else
     //     {
-    //         availableStack[availableTop++] = -trie[curr][str[i] - '0'];
+    //         availableStack[availableTop++] = -trie[curr][str[i] - 'a'];
     //         while (deleteTop >= 0)
     //         {
-    //             trie[curr][str[i] - '0'] = 0;
+    //             trie[curr][str[i] - 'a'] = 0;
     //             i--;
     //             cnt[curr]--;
     //             if (cnt[curr] > 0)
@@ -156,14 +162,14 @@ void deleteTrie(char *str)
     //     }
     //     printf("%s deleted\n", str);
     // }
-    fseek(fp, 2 * (curr * LEN + (str[i] - '0')), SEEK_SET);
+    fseek(fp, 2 * (curr * LEN + (str[i] - 'a')), SEEK_SET);
     fread(&child, sizeof(short int), 1, fp);
     if (child < 0)
     {
         if (cnt[child] > 0)
         {
             child *= -1;
-            fseek(fp, 2 * (curr * LEN + (str[i] - '0')), SEEK_SET);
+            fseek(fp, 2 * (curr * LEN + (str[i] - 'a')), SEEK_SET);
             fwrite(&child, sizeof(short int), 1, fp);
         }
         else
@@ -172,7 +178,7 @@ void deleteTrie(char *str)
             while (deleteTop >= 0)
             {
                 child = 0;
-                fseek(fp, 2 * (curr * LEN + (str[i] - '0')), SEEK_SET);
+                fseek(fp, 2 * (curr * LEN + (str[i] - 'a')), SEEK_SET);
                 fwrite(&child, sizeof(short int), 1, fp);
                 i--;
                 cnt[curr]--;
@@ -216,44 +222,44 @@ int main()
     //memset(trie, 0, sizeof(trie));
     //memset(cnt, 0, sizeof(cnt));
 
-    insertTrie("apple");
-    insertTrie("apple");
-    insertTrie("ball");
-    insertTrie("apple");
-    searchTrie("apple");
-    searchTrie("ball");
-    searchTrie("apple1");
-    printStack();
-    deleteTrie("apple");
-    printStack();
-    deleteTrie("ball");
-    printStack();
-    searchTrie("ball");
-    deleteTrie("apple1");
-    insertTrie("apple");
-    printStack();
-    searchTrie("apple");
-    insertTrie("ball");
-    printStack();
-    // insertTrie("car");
-    // insertTrie("cars");
-    // insertTrie("balls");
-    // insertTrie("car");
-    // searchTrie("car");
-    // searchTrie("cars");
-    // searchTrie("balls");
+    // insertTrie("apple");
+    // insertTrie("apple");
+    // insertTrie("ball");
+    // insertTrie("apple");
+    // searchTrie("apple");
+    // searchTrie("ball");
+    // searchTrie("apple1");
     // printStack();
-    // deleteTrie("cars");
+    // deleteTrie("apple");
     // printStack();
     // deleteTrie("ball");
     // printStack();
     // searchTrie("ball");
     // deleteTrie("apple1");
+    // insertTrie("apple");
+    // printStack();
+    // searchTrie("apple");
     // insertTrie("ball");
     // printStack();
-    // searchTrie("cars");
-    // insertTrie("ball");
-    // printStack();
+    insertTrie("car");
+    insertTrie("cars");
+    insertTrie("ball");
+    insertTrie("balls");
+    searchTrie("car");
+    searchTrie("cars");
+    searchTrie("balls");
+    printStack();
+    deleteTrie("cars");
+    printStack();
+    deleteTrie("ball");
+    printStack();
+    searchTrie("ball");
+    deleteTrie("balls");
+    insertTrie("ball");
+    printStack();
+    searchTrie("cars");
+    insertTrie("ball");
+    printStack();
 
     fseek(fpCnt, 0, SEEK_SET);
     fwrite(cnt,sizeof(short int)*(1<<15),1,fpCnt);
