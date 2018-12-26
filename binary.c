@@ -1,3 +1,4 @@
+//                      gcc binary.c -lm -o binary;./binary
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
@@ -6,6 +7,10 @@ short int trie[(1 << 15)][26], cnt[(1 << 15)], deleteStack[1000], availableStack
 unsigned short int end, availableTop;
 FILE *fp, *fpStack,*fpCnt;
 
+int absolute(int x)
+{
+    return x - 2*(x<0)*x;
+}
 short int nextAvailableNode()
 {
     //if stack is empty
@@ -18,6 +23,7 @@ short int nextAvailableNode()
 
 void insertTrie(char *str)
 {
+    printf("insertTrie:\n");
     int curr = 1, i,size=ftell(fp);
     short int child;
     for (i = 0; str[i + 1]; i++)
@@ -30,11 +36,12 @@ void insertTrie(char *str)
     //     printf("%c %d\n", str[i], curr);
     // }
     {
+        child=0;
         fseek(fp, 2 * (curr * LEN + (str[i] - 'a')), SEEK_SET);
         //printf("PosRead=%ld ",ftell(fp));
         fread(&child, sizeof(short int), 1, fp);
         //printf("%d: child=%d ",i,child);
-        if (child&&(2 * (curr * LEN + (str[i] - 'a'))<size))
+        if (child)//&&(2 * (curr * LEN + (str[i] - 'a'))<size))
             {
                 curr=(child<0)?-child:child;
                 printf("-->");
@@ -65,12 +72,13 @@ void insertTrie(char *str)
     //     printf("%c %d\n", str[i], trie[curr][str[i] - 'a']);
     //     printf("%s is inserted\n", str);
     // }
+    child=0;
     fseek(fp, 2 * (curr * LEN + (str[i] - 'a')), SEEK_SET);
     fread(&child, sizeof(short int), 1, fp);
     //printf(" curr=%d child=%d ",curr,child);
-    if ((child < 0)&&(2 * (curr * LEN + (str[i] - 'a'))<size))
+    if ((child < 0))//&&(2 * (curr * LEN + (str[i] - 'a'))<size))
         printf("%s already present\n", str);
-    else if ((child > 0)&&(2 * (curr * LEN + (str[i] - 'a'))<size))
+    else if ((child > 0))//&&(2 * (curr * LEN + (str[i] - 'a'))<size))
     {
         child *= -1;
         fseek(fp, 2 * (curr * LEN + (str[i] - 'a')), SEEK_SET);
@@ -91,6 +99,7 @@ void insertTrie(char *str)
 
 void searchTrie(char *str)
 {
+    printf("searchTrie:\n");
     int curr = 1, i;
     short int child;
     for (i = 0; str[i + 1]; i++)
@@ -102,6 +111,7 @@ void searchTrie(char *str)
     //     return;
     // }
     {
+        child=0;
         fseek(fp, 2 * (curr * LEN + (str[i] - 'a')), SEEK_SET);
         fread(&child, sizeof(short int), 1, fp);
         if (child)
@@ -112,6 +122,7 @@ void searchTrie(char *str)
             return;
         }
     }
+    child=0;
     fseek(fp, 2 * (curr * LEN + (str[i] - 'a')), SEEK_SET);
     fread(&child, sizeof(short int), 1, fp);
     if (child < 0)
@@ -122,18 +133,21 @@ void searchTrie(char *str)
 
 void deleteTrie(char *str)
 {
+    printf("deleteTrie:\n");
     int curr = 1, i;
     short int child;
     deleteTop = 0;
+    deleteStack[deleteTop++] = 1;
     for (i = 0; str[i + 1]; i++)
     {
 
-        deleteStack[deleteTop++] = curr;
-
-        fseek(fp, 2 * (curr * LEN + (str[i] - 'a')), SEEK_SET);
+        // deleteStack[deleteTop++] = (curr<0)*-curr+(curr>=0)*curr;
+        child=0;
+        fseek(fp, 2 * (absolute(curr) * LEN + (str[i] - 'a')), SEEK_SET);
         fread(&child, sizeof(short int), 1, fp);
+        deleteStack[deleteTop++] = child;
         if (child)
-            curr = (child < 0) * -child + (child >= 0) * child;
+            curr = child;
         else
         {
             printf("%s not present\n", str);
@@ -162,32 +176,50 @@ void deleteTrie(char *str)
     //     }
     //     printf("%s deleted\n", str);
     // }
-    fseek(fp, 2 * (curr * LEN + (str[i] - 'a')), SEEK_SET);
+    //deleteStack[deleteTop++] = curr;
+    child=0;
+    fseek(fp, 2 * (absolute(curr) * LEN + (str[i] - 'a')), SEEK_SET);
     fread(&child, sizeof(short int), 1, fp);
     if (child < 0)
     {
-        if (cnt[child] > 0)
+        if (cnt[-child] > 0)
         {
             child *= -1;
-            fseek(fp, 2 * (curr * LEN + (str[i] - 'a')), SEEK_SET);
+            fseek(fp, 2 * (absolute(curr) * LEN + (str[i] - 'a')), SEEK_SET);
             fwrite(&child, sizeof(short int), 1, fp);
         }
         else
         {
             availableStack[availableTop++] = -child;
+            // child = 0;
+            // fseek(fp, 2 * (curr * LEN + (str[i] - 'a')), SEEK_SET);
+            // fwrite(&child, sizeof(short int), 1, fp);
+            deleteTop--;
             while (deleteTop >= 0)
             {
+                // curr=deleteStack[deleteTop--];
+                // cnt[(curr<0)*-curr+(curr>=0)*curr]--;
+                // if ((curr<0) || (cnt[(curr<0)*-curr+(curr>=0)*curr] > 0))
+                //     break;
+                // fseek(fp, 2 * (curr * LEN + (str[i] - 'a')), SEEK_SET);
+                // fwrite(&child, sizeof(short int), 1, fp);
+
                 child = 0;
-                fseek(fp, 2 * (curr * LEN + (str[i] - 'a')), SEEK_SET);
+                fseek(fp, 2 * (absolute(curr) * LEN + (str[i] - 'a')), SEEK_SET);
                 fwrite(&child, sizeof(short int), 1, fp);
                 i--;
-                cnt[curr]--;
-                if (cnt[curr] > 0)
+                cnt[absolute(curr)]--;
+                if (cnt[absolute(curr)] > 0 || curr<0)          //If must not delete, break and stop futher deletions
                     break;
-                availableStack[availableTop++] = curr;
+                availableStack[availableTop++] = absolute(curr);    //Else add to available stack. find location using parent and delete
                 deleteTop--;
                 if (deleteTop >= 0)
                     curr = deleteStack[deleteTop];
+                // fseek(fp, 2 * (curr * LEN + (str[i] - 'a')), SEEK_SET);
+                // fread(&child, sizeof(short int), 1, fp);
+                // if(child<0)
+                //     break;
+
             }
         }
         printf("%s deleted\n", str);
@@ -253,8 +285,12 @@ int main()
     printStack();
     deleteTrie("ball");
     printStack();
+    searchTrie("car");
     searchTrie("ball");
+    searchTrie("cars");
+    searchTrie("balls");
     deleteTrie("balls");
+    printStack();
     insertTrie("ball");
     printStack();
     searchTrie("cars");
