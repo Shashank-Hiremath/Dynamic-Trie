@@ -1,3 +1,21 @@
+commit 9fcde10bc7108f25e7b175e7f4cd0b4f2a8f2eda
+Author: Shashank V Hiremath <shashankhire2@gmail.com>
+Date:   Wed Dec 26 20:52:00 2018 +0530
+
+    Add Readme.md
+
+commit 292c9852b2c44270ffb6c3351e605e4ea7e5452b
+Author: Shashank V Hiremath <shashankhire2@gmail.com>
+Date:   Wed Dec 26 20:44:15 2018 +0530
+
+    Done Bug fixing for deleteTrie. Need more testing
+
+commit 93ff7758355a865001f1b3d4033e3a1958b3c236
+Author: Shashank V Hiremath <shashankhire2@gmail.com>
+Date:   Tue Dec 25 16:52:08 2018 +0530
+
+    Fixed bug of reading beyond file
+
 commit de686cc03afd3f1ec8c664196cdd13d3dfef3389
 Author: Shashank V Hiremath <shashankhire2@gmail.com>
 Date:   Mon Dec 24 21:58:42 2018 +0530
