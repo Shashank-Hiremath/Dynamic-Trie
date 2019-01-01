@@ -1,4 +1,4 @@
-//                      gcc binary.c -lm -o binary;./binary
+//                      gcc binary.c -o binary;./binary
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
@@ -15,6 +15,11 @@ int absolute(int x)
 short int nextAvailableNode()
 {
     //if stack is empty
+    if(end>=32767)
+        {
+            printf("Trie memory full");
+            exit(0);
+        }
     if (availableTop == 0)
         return ++end;
     if (availableStack[availableTop - 1] == 1)

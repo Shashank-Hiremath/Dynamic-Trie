@@ -1,6 +1,6 @@
 # Dynamic-Trie
 gcc initialize.c -o initialize;./initialize</br>
-gcc binary.c -lm -o binary;./binary<input1
+gcc binary.c -o binary;./binary<input1
 
 ## Input format:
 <pre>
