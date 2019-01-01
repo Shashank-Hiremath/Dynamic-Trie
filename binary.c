@@ -2,22 +2,26 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <stdlib.h>
 #define LEN 26
 #define MAX 100
-short int trie[(1 << 15)][26], cnt[(1 << 15)], deleteStack[1000], availableStack[(1 << 15)], deleteTop;
-unsigned short int end, availableTop;
+#define TYPE int
+#define NODE_NUM 10000000
+#define DEL_STACK_SIZE 1000
+int deleteStack[DEL_STACK_SIZE], availableStack[NODE_NUM], deleteTop,cnt[NODE_NUM];
+unsigned TYPE end, availableTop;
 FILE *fp, *fpStack, *fpCnt;
 
 int absolute(int x)
 {
     return x - 2 * (x < 0) * x;
 }
-short int nextAvailableNode()
+TYPE nextAvailableNode()
 {
     //if stack is empty
-    if(end>=32767)
+    if(end>=NODE_NUM)
         {
-            printf("Trie memory full");
+            printf("Trie memory full\n");
             exit(0);
         }
     if (availableTop == 0)
@@ -29,13 +33,13 @@ short int nextAvailableNode()
 
 void insertTrie(char *str)
 {
-    int curr = 1, i, size = ftell(fp);
-    short int child;
+    int curr = 1, i;
+    TYPE child;
     for (i = 0; str[i + 1]; i++)
     {
         child = 0;
-        fseek(fp, 2 * (curr * LEN + (str[i] - 'a')), SEEK_SET);
-        fread(&child, sizeof(short int), 1, fp);
+        fseek(fp, sizeof(TYPE) * (curr * LEN + (str[i] - 'a')), SEEK_SET);
+        fread(&child, sizeof(TYPE), 1, fp);
         if (child)
         {
             curr = (child < 0) ? -child : child;
@@ -43,29 +47,29 @@ void insertTrie(char *str)
         else
         {
             cnt[curr]++;
-            fseek(fp, 2 * (curr * LEN + (str[i] - 'a')), SEEK_SET); //Important step. seek. allocate. write.
+            fseek(fp, sizeof(TYPE) * (curr * LEN + (str[i] - 'a')), SEEK_SET); //Important step. seek. allocate. write.
             curr = nextAvailableNode();
-            fwrite(&curr, sizeof(short int), 1, fp);
+            fwrite(&curr, sizeof(TYPE), 1, fp);
         }
     }
     child = 0;
-    fseek(fp, 2 * (curr * LEN + (str[i] - 'a')), SEEK_SET);
-    fread(&child, sizeof(short int), 1, fp);
+    fseek(fp, sizeof(TYPE) * (curr * LEN + (str[i] - 'a')), SEEK_SET);
+    fread(&child, sizeof(TYPE), 1, fp);
     if ((child < 0))
         printf("%s already present\n", str);
     else if ((child > 0))
     {
         child *= -1;
-        fseek(fp, 2 * (curr * LEN + (str[i] - 'a')), SEEK_SET);
-        fwrite(&child, sizeof(short int), 1, fp);
+        fseek(fp, sizeof(TYPE) * (curr * LEN + (str[i] - 'a')), SEEK_SET);
+        fwrite(&child, sizeof(TYPE), 1, fp);
         printf("%s is inserted\n", str);
     }
     else
     {
         cnt[curr]++;
         child = -nextAvailableNode();
-        fseek(fp, 2 * (curr * LEN + (str[i] - 'a')), SEEK_SET);
-        fwrite(&child, sizeof(short int), 1, fp);
+        fseek(fp, sizeof(TYPE) * (curr * LEN + (str[i] - 'a')), SEEK_SET);
+        fwrite(&child, sizeof(TYPE), 1, fp);
         printf("%s is inserted\n", str);
     }
 }
@@ -73,12 +77,12 @@ void insertTrie(char *str)
 void searchTrie(char *str)
 {
     int curr = 1, i;
-    short int child;
+    TYPE child;
     for (i = 0; str[i + 1]; i++)
     {
         child = 0;
-        fseek(fp, 2 * (curr * LEN + (str[i] - 'a')), SEEK_SET);
-        fread(&child, sizeof(short int), 1, fp);
+        fseek(fp, sizeof(TYPE) * (curr * LEN + (str[i] - 'a')), SEEK_SET);
+        fread(&child, sizeof(TYPE), 1, fp);
         if (child)
             curr = (child < 0) * -child + (child >= 0) * child;
         else
@@ -88,8 +92,8 @@ void searchTrie(char *str)
         }
     }
     child = 0;
-    fseek(fp, 2 * (curr * LEN + (str[i] - 'a')), SEEK_SET);
-    fread(&child, sizeof(short int), 1, fp);
+    fseek(fp, 4 * (curr * LEN + (str[i] - 'a')), SEEK_SET);
+    fread(&child, sizeof(TYPE), 1, fp);
     if (child < 0)
         printf("%s is present\n", str);
     else
@@ -99,14 +103,14 @@ void searchTrie(char *str)
 void deleteTrie(char *str)
 {
     int curr = 1, i;
-    short int child;
+    TYPE child;
     deleteTop = 0;
     deleteStack[deleteTop++] = 1;
     for (i = 0; str[i + 1]; i++)
     {
         child = 0;
-        fseek(fp, 2 * (absolute(curr) * LEN + (str[i] - 'a')), SEEK_SET);
-        fread(&child, sizeof(short int), 1, fp);
+        fseek(fp, sizeof(TYPE) * (absolute(curr) * LEN + (str[i] - 'a')), SEEK_SET);
+        fread(&child, sizeof(TYPE), 1, fp);
         deleteStack[deleteTop++] = child;
         if (child)
             curr = child;
@@ -117,15 +121,15 @@ void deleteTrie(char *str)
         }
     }
     child = 0;
-    fseek(fp, 2 * (absolute(curr) * LEN + (str[i] - 'a')), SEEK_SET);
-    fread(&child, sizeof(short int), 1, fp);
+    fseek(fp, sizeof(TYPE) * (absolute(curr) * LEN + (str[i] - 'a')), SEEK_SET);
+    fread(&child, sizeof(TYPE), 1, fp);
     if (child < 0)
     {
         if (cnt[-child] > 0)
         {
             child *= -1;
-            fseek(fp, 2 * (absolute(curr) * LEN + (str[i] - 'a')), SEEK_SET);
-            fwrite(&child, sizeof(short int), 1, fp);
+            fseek(fp, sizeof(TYPE) * (absolute(curr) * LEN + (str[i] - 'a')), SEEK_SET);
+            fwrite(&child, sizeof(TYPE), 1, fp);
         }
         else
         {
@@ -134,8 +138,8 @@ void deleteTrie(char *str)
             while (deleteTop >= 0)
             {
                 child = 0;
-                fseek(fp, 2 * (absolute(curr) * LEN + (str[i] - 'a')), SEEK_SET);
-                fwrite(&child, sizeof(short int), 1, fp);
+                fseek(fp, sizeof(TYPE) * (absolute(curr) * LEN + (str[i] - 'a')), SEEK_SET);
+                fwrite(&child, sizeof(TYPE), 1, fp);
                 i--;
                 cnt[absolute(curr)]--;
                 if (cnt[absolute(curr)] > 0 || curr < 0) //If must not delete, break and stop futher deletions
@@ -161,15 +165,15 @@ int main()
 {
     fp = fopen("TrieBinary", "r+");
     fseek(fp, 0, SEEK_SET);
-    fread(&end, sizeof(unsigned short int), 1, fp);
+    fread(&end, sizeof(unsigned TYPE), 1, fp);
 
     fpStack = fopen("TrieStack", "r+");
     fseek(fpStack, 0, SEEK_SET);
-    fread(&availableTop, sizeof(unsigned short int), 1, fpStack);
-    fread(availableStack, sizeof(short int) * availableTop, 1, fpStack);
+    fread(&availableTop, sizeof(unsigned TYPE), 1, fpStack);
+    fread(availableStack, sizeof(TYPE) * availableTop, 1, fpStack);
 
     fpCnt = fopen("TrieCnt", "r+");
-    fread(cnt, sizeof(short int) * (1 << 15), 1, fpCnt);
+    fread(cnt, sizeof(TYPE) * NODE_NUM, 1, fpCnt);
 
 
 
@@ -233,16 +237,16 @@ int main()
 
 
     fseek(fpCnt, 0, SEEK_SET);
-    fwrite(cnt, sizeof(short int) * (1 << 15), 1, fpCnt);
+    fwrite(cnt, sizeof(TYPE) * NODE_NUM, 1, fpCnt);
     fclose(fpCnt);
 
     fseek(fpStack, 0, SEEK_SET);
-    fwrite(&availableTop, sizeof(unsigned short int), 1, fpStack);
-    fwrite(availableStack, sizeof(short int) * availableTop, 1, fpStack);
+    fwrite(&availableTop, sizeof(unsigned TYPE), 1, fpStack);
+    fwrite(availableStack, sizeof(TYPE) * availableTop, 1, fpStack);
     fclose(fpStack);
 
     fseek(fp, 0, SEEK_SET);
-    fwrite(&end, sizeof(unsigned short int), 1, fp);
+    fwrite(&end, sizeof(unsigned TYPE), 1, fp);
     fclose(fp);
     return 0;
 }
