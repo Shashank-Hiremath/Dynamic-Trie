@@ -11,6 +11,9 @@ int main()
     FILE *fpCnt = fopen("TrieCnt","w+");
     fseek(fp, 0, SEEK_SET);
     fwrite(&end, sizeof(unsigned short int), 1, fp);
+    fseek(fpCnt, 100000000, SEEK_SET);
+    end=0;
+    fwrite(&end, sizeof(unsigned short int), 1, fp);
     fclose(fpCnt);
     fclose(fpStack);
     fclose(fp);

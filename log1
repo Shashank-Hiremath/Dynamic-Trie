@@ -1,3 +1,21 @@
+commit 2c07986a5612d98d439a81d0231d1604f25b6214
+Author: Shashank V Hiremath <shashankhire2@gmail.com>
+Date:   Tue Jan 1 13:21:55 2019 +0530
+
+    Done changing short int to TYPE. Defined NODE_NUM, DEL_STACK_SIZE
+
+commit fa1217924ea7ab35791ac8978ecf0456d3b80a62
+Author: Shashank V Hiremath <shashankhire2@gmail.com>
+Date:   Tue Jan 1 12:08:45 2019 +0530
+
+    Add Dictionary file. Modified Readme
+
+commit 6ffeb898740d35606d32c856de3a7520c98791dd
+Author: Shashank V Hiremath <shashankhire2@gmail.com>
+Date:   Fri Dec 28 13:58:21 2018 +0530
+
+    Done reading input words from file. Added some documentation in README.md. Removed unnecessary commented codes
+
 commit 9fcde10bc7108f25e7b175e7f4cd0b4f2a8f2eda
 Author: Shashank V Hiremath <shashankhire2@gmail.com>
 Date:   Wed Dec 26 20:52:00 2018 +0530
