@@ -25,9 +25,18 @@ TYPE nextAvailableNode()
         }
     if (availableTop == 0)
         return ++end;
-    if (availableStack[availableTop - 1] == 1)
-        return availableStack[availableTop -= 2];
-    return availableStack[--availableTop];
+    TYPE val;
+    fseek(fpStack, sizeof(TYPE)*(availableTop-1+1), SEEK_SET);
+    fread(&val, sizeof(TYPE),1,fpStack);
+    if(val==1)
+        {
+            fseek(fpStack, sizeof(TYPE)*(availableTop-2+1), SEEK_SET);
+            fread(&val, sizeof(TYPE),1,fpStack);
+            availableTop-=2;
+            return val;
+        }
+    availableTop--;
+    return val;
 }
 
 void insertTrie(char *str)
@@ -143,7 +152,10 @@ void deleteTrie(char *str)
         }
         else
         {
-            availableStack[availableTop++] = -child;
+            child*=-1;
+            fseek(fpStack, sizeof(TYPE)*(availableTop+1), SEEK_SET);
+            fwrite(&child, sizeof(TYPE),1,fpStack);
+            availableTop++;
             deleteTop--;
             while (deleteTop >= 0)
             {
@@ -158,7 +170,9 @@ void deleteTrie(char *str)
                 fwrite(&cnt1,sizeof(int),1,fpCnt);
                 if (cnt1 > 0 || curr < 0) //If must not delete, break and stop futher deletions
                     break;
-                availableStack[availableTop++] = absolute(curr); //Else add to available stack. find location using parent and delete
+                fseek(fpStack, sizeof(TYPE)*(availableTop+1), SEEK_SET);    //Else add to available stack. find location using parent and delete
+                fwrite(&curr, sizeof(TYPE),1,fpStack);
+                availableTop++;
                 deleteTop--;
                 if (deleteTop >= 0)
                     curr = deleteStack[deleteTop];
@@ -184,7 +198,6 @@ int main()
     fpStack = fopen("TrieStack", "r+");
     fseek(fpStack, 0, SEEK_SET);
     fread(&availableTop, sizeof(unsigned TYPE), 1, fpStack);
-    fread(availableStack, sizeof(TYPE) * availableTop, 1, fpStack);
 
     fpCnt = fopen("TrieCnt", "r+");
 
@@ -252,7 +265,6 @@ int main()
 
     fseek(fpStack, 0, SEEK_SET);
     fwrite(&availableTop, sizeof(unsigned TYPE), 1, fpStack);
-    fwrite(availableStack, sizeof(TYPE) * availableTop, 1, fpStack);
     fclose(fpStack);
 
     fseek(fp, 0, SEEK_SET);
