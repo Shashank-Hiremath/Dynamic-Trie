@@ -7,8 +7,8 @@
 #define MAX 100
 #define TYPE int
 #define NODE_NUM 10000000
-int deleteStack[MAX], availableStack[NODE_NUM];
-unsigned TYPE end, availableTop, deleteTop;
+int deleteStack[MAX], availableStack[NODE_NUM],deleteTop;
+unsigned TYPE end, availableTop;
 FILE *fp, *fpStack, *fpCnt;
 
 int absolute(int x)
@@ -50,7 +50,6 @@ void insertTrie(char *str)
             child++;
             fseek(fpCnt, sizeof(int)*curr, SEEK_SET);
             fwrite(&child,sizeof(int),1,fpCnt);
-            //cnt[curr]++;
             fseek(fp, sizeof(TYPE) * (curr * LEN + (str[i] - 'a')), SEEK_SET); //Important step. seek. allocate. write.
             curr = nextAvailableNode();
             fwrite(&curr, sizeof(TYPE), 1, fp);
@@ -75,7 +74,6 @@ void insertTrie(char *str)
         child++;
         fseek(fpCnt, sizeof(int)*curr, SEEK_SET);
         fwrite(&child,sizeof(int),1,fpCnt);
-        //cnt[curr]++;
         child = -nextAvailableNode();
         fseek(fp, sizeof(TYPE) * (curr * LEN + (str[i] - 'a')), SEEK_SET);
         fwrite(&child, sizeof(TYPE), 1, fp);
@@ -158,7 +156,6 @@ void deleteTrie(char *str)
                 cnt1--;
                 fseek(fpCnt, sizeof(int)*absolute(curr), SEEK_SET);
                 fwrite(&cnt1,sizeof(int),1,fpCnt);
-                //cnt[absolute(curr)]--;
                 if (cnt1 > 0 || curr < 0) //If must not delete, break and stop futher deletions
                     break;
                 availableStack[availableTop++] = absolute(curr); //Else add to available stack. find location using parent and delete
@@ -190,13 +187,12 @@ int main()
     fread(availableStack, sizeof(TYPE) * availableTop, 1, fpStack);
 
     fpCnt = fopen("TrieCnt", "r+");
-    //fread(cnt, sizeof(TYPE) * NODE_NUM, 1, fpCnt);
 
 
 
 
     FILE *fpin;
-    char choice, str[MAX];
+    char choice='a', str[MAX];
     //printf("Enter choice:\ninsert: i\nsearch: s\nd\ndelete: d\nexit: e\n");
     while (choice != 'e')
     {
@@ -204,7 +200,7 @@ int main()
         switch (choice)
         {
         case 'i':
-            scanf("%s\n", str);
+            scanf(" %s\n", str);
             if (str[0] == '#')
             {
                 fpin = fopen(str + 1, "r");
@@ -216,7 +212,7 @@ int main()
                 insertTrie(str);
             break;
         case 's':
-            scanf("%s\n", str);
+            scanf(" %s\n", str);
             if (str[0] == '#')
             {
                 fpin = fopen(str + 1, "r");
@@ -228,7 +224,7 @@ int main()
                 searchTrie(str);
             break;
         case 'd':
-            scanf("%s\n", str);
+            scanf(" %s\n", str);
             if (str[0] == '#')
             {
                 fpin = fopen(str + 1, "r");
@@ -244,8 +240,6 @@ int main()
         default:
             printf("Invalid choice\n");
         }
-        //scanf("%c", &choice);
-        //printf("\n--%c\n",choice);
     }
     printf("\nend=%d\n", end);
     printf("availableTop=%d\n\n", availableTop);
@@ -254,8 +248,6 @@ int main()
 
 
 
-    //fseek(fpCnt, 0, SEEK_SET);
-    //fwrite(cnt, sizeof(TYPE) * NODE_NUM, 1, fpCnt);
     fclose(fpCnt);
 
     fseek(fpStack, 0, SEEK_SET);
